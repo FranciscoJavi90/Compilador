@@ -1,0 +1,56 @@
+section .data
+    formatIn db "%d", 0
+    formatOut db "%d", 10, 0
+
+section .bss
+push dword formatIn
+push dword x
+call scanf
+add esp, 8
+push dword formatIn
+push dword y
+call scanf
+add esp, 8
+mov eax, 1
+add eax, x
+mov #T1, eax
+mov eax, #T1
+mov dword [z], eax
+#T2 = x < y
+ifZ #T2 goto #l1
+mov eax, x
+add eax, y
+mov #T3, eax
+mov eax, #T3
+mov dword [z], eax
+mov eax, 0
+mov dword [z], eax
+#l1:push dword formatOut
+push dword [z]
+call printf
+add esp, 8
+
+section .text
+    extern printf
+    extern scanf
+
+global main
+main:
+    ; Declaración de variables
+    sub esp, 12
+
+    ; Lectura de x
+    push dword formatIn
+    push dword x
+    call scanf
+    add esp, 8
+
+    ; Lectura de y
+    push dword formatIn
+    push dword y
+    call scanf
+    add esp, 8
+
+
+    Terminación del programa
+    mov eax, 0

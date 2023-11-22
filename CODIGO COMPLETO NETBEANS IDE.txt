@@ -1,0 +1,555 @@
+package gt.edu.umg.proyectofinalcoop;
+
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Insets;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+
+public class MClase extends javax.swing.JFrame {
+    // Clase MClase que extiende javax.swing.JFrame
+    private File archivoActual;
+    // Variable privada para almacenar el archivo actual
+    public MClase() {
+        initComponents();
+        // Constructor de la clase MClase que inicializa los componentes de la interfaz
+    }
+    private void guardarArchivo(File archivo) {
+        try ( BufferedWriter bw = new BufferedWriter(new FileWriter(archivo))) {
+            // Método para guardar el contenido del JTextArea en un archivo
+            bw.write(jTextArea1.getText());
+            JOptionPane.showMessageDialog(this, "Archivo guardado correctamente", "Guardar", JOptionPane.INFORMATION_MESSAGE);
+            // Muestra un mensaje de éxito al guardar el archivo
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error al guardar el archivo", "Error", JOptionPane.ERROR_MESSAGE);
+            // Muestra un mensaje de error si ocurre algún problema al guardar el archivo
+        }
+    }
+    private boolean verificarSintaxis(String codigo) {
+        try {
+            ProcessBuilder processBuilder = new ProcessBuilder("C:\\Users\\Legion 5\\Documents\\Ingenieria en Sistemas 7mo. semestre\\COMPILADORES\\PF\\gramatica.exe");
+            // Crea un objeto ProcessBuilder para ejecutar el archivo "gramatica.exe"
+            Process proceso = processBuilder.start();
+            // Inicia el proceso
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(proceso.getOutputStream()));
+            writer.write(codigo + "\n");
+            writer.flush();
+            writer.close();
+            // Escribe el código en el proceso
+            BufferedReader reader = new BufferedReader(new InputStreamReader(proceso.getInputStream()));
+            StringBuilder salida = new StringBuilder();
+            String line;
+            boolean sintaxisCorrecta = false;
+            while ((line = reader.readLine()) != null) {
+                salida.append(line).append("\n");
+                if (line.equals("Sintaxis correcta.")) {
+                    sintaxisCorrecta = true;
+                }
+            }
+            reader.close();
+            // Lee la salida del proceso
+            int resultado = proceso.waitFor();
+            if (resultado == 0) {
+                return sintaxisCorrecta;
+            }
+            // Espera a que el proceso termine y verifica el resultado
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            // Manejo de excepciones si ocurre algún error en la ejecución del proceso
+        }
+        return false;
+    }
+    private void generarArchivoBat(String rutaDirectorio, String nombreArchivo) {
+        try {
+            String rutaCompleta = rutaDirectorio + "\\" + "compile.bat";
+            // Se construye la ruta completa del archivo .bat concatenando el directorio y el nombre del archivo.
+            FileWriter fileWriter = new FileWriter(rutaCompleta);
+            // Se crea un FileWriter para escribir en el archivo.
+            BufferedWriter writer = new BufferedWriter(fileWriter);
+            // Se envuelve el FileWriter en un BufferedWriter para escribir de manera eficiente.
+            String contenidoBat = "grama" + " < " + nombreArchivo + ".ml > " + nombreArchivo + ".tdc";
+            // Se define el contenido del archivo .bat. En este caso, se utiliza el comando "grama" seguido de la redirección de entrada y salida ("<" y ">") para ejecutar el archivo de entrada ".ml" y guardar el resultado en el archivo de salida ".tdc".
+            writer.write(contenidoBat);
+            // Se escribe el contenido en el archivo .bat.
+            writer.close();
+            // Se cierra el BufferedWriter.
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Si ocurre un error al escribir el archivo .bat, se imprime la traza del error.
+        }
+    }
+    private void generarArchivoBat2(String rutaDirectorio, String nombreArchivo) {
+        try {
+            String rutaCompleta = rutaDirectorio + "\\" + "compile2.bat";
+            FileWriter fileWriter = new FileWriter(rutaCompleta);
+            BufferedWriter writer = new BufferedWriter(fileWriter);
+            String contenidoBat = "gramaensam" + " < " + nombreArchivo + ".ml > " + nombreArchivo + ".tdc";
+            writer.write(contenidoBat);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Manejo de errores si no se puede escribir el archivo .bat
+        }
+    }
+    private void ejecutarArchivoBat(String rutaDirectorio) {
+        try {
+            String rutaCompleta = rutaDirectorio + "\\" + "compile.bat";
+            ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", rutaCompleta);
+            processBuilder.directory(new File(rutaDirectorio));
+            Process proceso = processBuilder.start();
+            proceso.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            // Manejo de errores si no se puede ejecutar el archivo .bat
+        }
+    }
+    private void ejecutarArchivoBat2(String rutaDirectorio) {
+        try {
+            String rutaCompleta = rutaDirectorio + "\\" + "compile2.bat";
+            ProcessBuilder processBuilder = new ProcessBuilder("cmd.exe", "/c", rutaCompleta);
+            processBuilder.directory(new File(rutaDirectorio));
+            Process proceso = processBuilder.start();
+            proceso.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+            // Manejo de errores si no se puede ejecutar el archivo .bat
+        }
+    }
+    private String leerArchivoTDC(String rutaDirectorio, String nombreArchivo) {
+        try {
+            String rutaCompleta = rutaDirectorio + "\\" + nombreArchivo + ".tdc";
+            // Obtiene la ruta completa del archivo concatenando la ruta del directorio, el separador de directorios "\\" y el nombre del archivo con extensión ".tdc"
+            FileReader fileReader = new FileReader(rutaCompleta);
+            // Crea un objeto FileReader para leer el archivo en la ruta especificada
+            BufferedReader reader = new BufferedReader(fileReader);
+            // Crea un objeto BufferedReader para leer el archivo de manera eficiente
+            StringBuilder contenidoTDC = new StringBuilder();
+            // Crea un objeto StringBuilder para almacenar el contenido del archivo
+            String linea;
+            // Variable para almacenar cada línea leída del archivo
+            while ((linea = reader.readLine()) != null) {
+                // Lee una línea del archivo y asigna su valor a la variable "linea". El ciclo se repetirá mientras la línea leída no sea nula.
+                contenidoTDC.append(linea).append("\n");
+                // Agrega la línea leída al objeto StringBuilder "contenidoTDC" y agrega un salto de línea al final de cada línea
+            }
+            reader.close();
+            // Cierra el BufferedReader para liberar los recursos
+            return contenidoTDC.toString();
+            // Convierte el contenido almacenado en el objeto StringBuilder a una cadena y lo devuelve
+        } catch (IOException e) {
+            e.printStackTrace();
+            // Imprime la traza de la excepción en caso de que ocurra un error de lectura del archivo
+            // Manejo de errores si no se puede leer el archivo .tdc
+        }
+        return "";
+        // Si ocurre una excepción, retorna una cadena vacía indicando que no se pudo leer el archivo
+    }
+    private void mostrarResultadoEnVentana(String contenido) {
+        JFrame ventanaResultado = new JFrame("Resultado de Tres Direcciones");
+        JTextArea textAreaResultado = new JTextArea();
+        textAreaResultado.setEditable(false);
+        // Configurar el estilo del JTextArea
+        textAreaResultado.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // Fuente monoespaciada
+        textAreaResultado.setBackground(new Color(0, 0, 0, 0)); // Fondo transparente
+        textAreaResultado.setMargin(new Insets(5, 10, 5, 10)); // Márgenes
+        // Dividir el contenido por líneas
+        String[] lineas = contenido.split("\n");
+        // Construir el nuevo contenido con números de línea y líneas de guía
+        StringBuilder nuevoContenido = new StringBuilder();
+        for (int i = 0; i < lineas.length; i++) {
+            String linea = lineas[i];
+            int numeroLinea = i + 1;
+            // Agregar el número de línea
+            nuevoContenido.append(String.format("%3d | ", numeroLinea));
+            // Agregar la línea de código
+            nuevoContenido.append(linea);
+            // Agregar una línea de guía transparente
+            nuevoContenido.append("\n");
+            // Si no es la última línea, agregar una línea de guía transparente
+            if (i < lineas.length - 1) {
+                nuevoContenido.append("    | ");
+                for (int j = 0; j < linea.length(); j++) {
+                    nuevoContenido.append(" ");
+                }
+                nuevoContenido.append("\n");
+            }
+        }
+        // Establecer el contenido modificado en el JTextArea
+        textAreaResultado.setText(nuevoContenido.toString());
+        JScrollPane scrollPane = new JScrollPane(textAreaResultado);
+        ventanaResultado.getContentPane().add(scrollPane);
+        ventanaResultado.setSize(600, 600);
+        ventanaResultado.setLocationRelativeTo(null);
+        ventanaResultado.setVisible(true);
+    }
+
+    private void mostrarResultadoEnVentana2(String contenido) {
+        JFrame ventanaResultado = new JFrame("Resultado de Código Ensamblador");
+        JTextArea textAreaResultado = new JTextArea();
+        textAreaResultado.setEditable(false);
+        // Configurar el estilo del JTextArea
+        textAreaResultado.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12)); // Fuente monoespaciada
+        textAreaResultado.setBackground(new Color(0, 0, 0, 0)); // Fondo transparente
+        textAreaResultado.setMargin(new Insets(5, 10, 5, 10)); // Márgenes
+        // Dividir el contenido por líneas
+        String[] lineas = contenido.split("\n");
+        // Construir el nuevo contenido con números de línea y líneas de guía
+        StringBuilder nuevoContenido = new StringBuilder();
+        for (int i = 0; i < lineas.length; i++) {
+            String linea = lineas[i];
+            int numeroLinea = i + 1;
+            // Agregar el número de línea
+            nuevoContenido.append(String.format("%3d | ", numeroLinea));
+            // Agregar la línea de código
+            nuevoContenido.append(linea);
+            // Agregar una línea de guía transparente
+            nuevoContenido.append("\n");
+            // Si no es la última línea, agregar una línea de guía transparente
+            if (i < lineas.length - 1) {
+                nuevoContenido.append("    | ");
+                for (int j = 0; j < linea.length(); j++) {
+                    nuevoContenido.append(" ");
+                }
+                nuevoContenido.append("\n");
+            }
+        }
+        // Establecer el contenido modificado en el JTextArea
+        textAreaResultado.setText(nuevoContenido.toString());
+        JScrollPane scrollPane = new JScrollPane(textAreaResultado);
+        ventanaResultado.getContentPane().add(scrollPane);
+        ventanaResultado.setSize(600, 600);
+        ventanaResultado.setLocationRelativeTo(null);
+        ventanaResultado.setVisible(true);
+    }
+
+    @SuppressWarnings("unchecked")
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">                          
+    private void initComponents() {
+
+        jLabel3 = new javax.swing.JLabel();
+        jLabel1 = new javax.swing.JLabel();
+        btn_asembler = new javax.swing.JButton();
+        btn_compilar = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea1 = new javax.swing.JTextArea();
+        btnsalir = new javax.swing.JButton();
+        btn_guardar = new javax.swing.JButton();
+        btn_tresdirecciones = new javax.swing.JButton();
+        btn_guardarcomo = new javax.swing.JButton();
+        btn_abrir = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setBackground(new java.awt.Color(0, 204, 51));
+        setUndecorated(true);
+        setResizable(false);
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel3.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        jLabel3.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel3.setText("v. 1.0");
+        getContentPane().add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(940, 10, -1, -1));
+
+        jLabel1.setBackground(new java.awt.Color(0, 0, 0));
+        jLabel1.setFont(new java.awt.Font("Georgia", 1, 48)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(255, 255, 255));
+        jLabel1.setText("IDE LENGUAJE BMLANG");
+        getContentPane().add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(130, 20, -1, -1));
+
+        btn_asembler.setBackground(new java.awt.Color(0, 0, 0));
+        btn_asembler.setIcon(new javax.swing.ImageIcon(getClass().getResource("/asm.png"))); // NOI18N
+        btn_asembler.setBorder(null);
+        btn_asembler.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_asembler.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_asemblerActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_asembler, new org.netbeans.lib.awtextra.AbsoluteConstraints(820, 110, 110, 110));
+
+        btn_compilar.setBackground(new java.awt.Color(0, 0, 0));
+        btn_compilar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/compilar.png"))); // NOI18N
+        btn_compilar.setBorder(null);
+        btn_compilar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_compilar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_compilarActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_compilar, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 110, 120, 110));
+
+        jTextArea1.setColumns(20);
+        jTextArea1.setFont(new java.awt.Font("Georgia", 0, 14)); // NOI18N
+        jTextArea1.setRows(5);
+        jTextArea1.setDebugGraphicsOptions(javax.swing.DebugGraphics.NONE_OPTION);
+        jScrollPane1.setViewportView(jTextArea1);
+
+        getContentPane().add(jScrollPane1, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 250, 730, 340));
+
+        btnsalir.setBackground(new java.awt.Color(0, 0, 0));
+        btnsalir.setFont(new java.awt.Font("Ebrima", 1, 14)); // NOI18N
+        btnsalir.setForeground(new java.awt.Color(102, 204, 0));
+        btnsalir.setText("SALIR");
+        btnsalir.setBorder(null);
+        btnsalir.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btnsalir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnsalirActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btnsalir, new org.netbeans.lib.awtextra.AbsoluteConstraints(820, 570, 110, 40));
+
+        btn_guardar.setBackground(new java.awt.Color(0, 0, 0));
+        btn_guardar.setIcon(new javax.swing.ImageIcon(getClass().getResource("/guardar.png"))); // NOI18N
+        btn_guardar.setBorder(null);
+        btn_guardar.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_guardar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_guardarActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_guardar, new org.netbeans.lib.awtextra.AbsoluteConstraints(350, 110, 120, 110));
+
+        btn_tresdirecciones.setBackground(new java.awt.Color(0, 0, 0));
+        btn_tresdirecciones.setIcon(new javax.swing.ImageIcon(getClass().getResource("/3direcciones.png"))); // NOI18N
+        btn_tresdirecciones.setBorder(null);
+        btn_tresdirecciones.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_tresdirecciones.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_tresdireccionesActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_tresdirecciones, new org.netbeans.lib.awtextra.AbsoluteConstraints(670, 110, 110, 110));
+
+        btn_guardarcomo.setBackground(new java.awt.Color(0, 0, 0));
+        btn_guardarcomo.setIcon(new javax.swing.ImageIcon(getClass().getResource("/guardarcomo.png"))); // NOI18N
+        btn_guardarcomo.setBorder(null);
+        btn_guardarcomo.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_guardarcomo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_guardarcomoActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_guardarcomo, new org.netbeans.lib.awtextra.AbsoluteConstraints(180, 110, 120, 110));
+
+        btn_abrir.setBackground(new java.awt.Color(0, 0, 0));
+        btn_abrir.setIcon(new javax.swing.ImageIcon(getClass().getResource("/abrir.png"))); // NOI18N
+        btn_abrir.setBorder(null);
+        btn_abrir.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        btn_abrir.setPreferredSize(new java.awt.Dimension(100, 100));
+        btn_abrir.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btn_abrirActionPerformed(evt);
+            }
+        });
+        getContentPane().add(btn_abrir, new org.netbeans.lib.awtextra.AbsoluteConstraints(20, 110, 120, 110));
+
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/fondo4.jpg"))); // NOI18N
+        getContentPane().add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 640));
+
+        pack();
+        setLocationRelativeTo(null);
+    }// </editor-fold>                        
+
+    private void btnsalirActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        System.exit(0);
+    }                                        
+
+    private void btn_abrirActionPerformed(java.awt.event.ActionEvent evt) {                                          
+        JFileChooser fileChooser = new JFileChooser();
+        // Crea un objeto JFileChooser para abrir una ventana de selección de archivo
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Archivos ML (*.ml)", "ml"));
+        // Establece un filtro para mostrar solo archivos con extensión ".ml"
+        int seleccion = fileChooser.showOpenDialog(this);
+        // Abre la ventana de selección de archivo y guarda la opción seleccionada
+        if (seleccion == JFileChooser.APPROVE_OPTION) {
+            // Si se selecciona un archivo
+            archivoActual = fileChooser.getSelectedFile();
+            // Obtiene el archivo seleccionado y lo guarda en la variable archivoActual
+            try ( BufferedReader br = new BufferedReader(new FileReader(archivoActual))) {
+                // Crea un objeto BufferedReader para leer el contenido del archivo
+                String linea;
+                StringBuilder contenido = new StringBuilder();
+                while ((linea = br.readLine()) != null) {
+                    // Lee cada línea del archivo hasta que no haya más líneas
+                    contenido.append(linea).append("\n");
+                    // Agrega la línea leída al StringBuilder contenido, junto con un salto de línea
+                }
+                jTextArea1.setText(contenido.toString());
+                // Establece el contenido leído en el JTextArea jTextArea1
+            } catch (IOException e) {
+                // Manejo de excepciones si ocurre algún error al abrir el archivo
+                JOptionPane.showMessageDialog(this, "Error al abrir el archivo", "Error", JOptionPane.ERROR_MESSAGE);
+                // Muestra un mensaje de error indicando que hubo un error al abrir el archivo
+            }
+        }
+    }                                         
+
+    private void btn_guardarActionPerformed(java.awt.event.ActionEvent evt) {                                            
+        // Si la variable 'archivoActual' no es nula
+        if (archivoActual != null) {
+            // Llama al método 'guardarArchivo' pasándole 'archivoActual' como argumento
+            guardarArchivo(archivoActual);
+        } else {
+            // Si 'archivoActual' es nulo, llama al método 'btn_guardarcomoActionPerformed' pasándole 'evt' como argumento
+            btn_guardarcomoActionPerformed(evt);
+        }
+    }                                           
+
+    private void btn_guardarcomoActionPerformed(java.awt.event.ActionEvent evt) {                                                
+        JFileChooser fileChooser = new JFileChooser();
+        // Crea un objeto JFileChooser para mostrar el diálogo de selección de archivo
+        fileChooser.setFileFilter(new javax.swing.filechooser.FileNameExtensionFilter("Archivos ML (*.ml)", "ml"));
+        // Establece un filtro de archivo para mostrar solo archivos con la extensión ".ml"
+        int seleccion = fileChooser.showSaveDialog(this);
+        // Muestra el diálogo de guardar archivo y devuelve la opción seleccionada
+        if (seleccion == JFileChooser.APPROVE_OPTION) {
+            // Verifica si se seleccionó la opción "Aceptar" en el diálogo de guardar archivo
+            archivoActual = fileChooser.getSelectedFile();
+            // Obtiene el archivo seleccionado en el diálogo
+            guardarArchivo(archivoActual);
+            // Llama al método "guardarArchivo" pasando el archivo seleccionado como argumento
+        }
+    }                                               
+
+    private void btn_compilarActionPerformed(java.awt.event.ActionEvent evt) {                                             
+        // Obtener el contenido del jTextArea1
+        String codigo = jTextArea1.getText();
+        // Se obtiene el texto contenido en el jTextArea1 y se almacena en la variable 'codigo'.
+        // Verificar si el jTextArea1 está vacío
+        if (codigo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "ESTÁ VACÍO. NO HAY SINTAXIS PARA COMPILAR", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            // Si el contenido del jTextArea1 está vacío, muestra un mensaje de advertencia indicando que no hay sintaxis para compilar.
+            return;
+        }
+        // Ejecutar el verificador de sintaxis
+        boolean sintaxisValida = verificarSintaxis(codigo);
+        // Se ejecuta el verificador de sintaxis para determinar si el código es válido. El resultado se almacena en la variable 'sintaxisValida'.
+        // Mostrar el resultado de la compilación
+        if (sintaxisValida) {
+            JOptionPane.showMessageDialog(this, "SINTAXIS VÁLIDA. COMPILACIÓN EXITOSA", "Compilación Exitosa", JOptionPane.INFORMATION_MESSAGE);
+            // Si la sintaxis es válida, muestra un mensaje de éxito indicando que la compilación fue exitosa.
+        } else {
+            JOptionPane.showMessageDialog(this, "SINTAXIS NO VÁLIDA. ERROR DE COMPILACIÓN", "Error", JOptionPane.ERROR_MESSAGE);
+            // Si la sintaxis no es válida, muestra un mensaje de error indicando que hubo un error en la compilación.
+        }
+    }                                            
+
+    private void btn_tresdireccionesActionPerformed(java.awt.event.ActionEvent evt) {                                                    
+        String rutaDirectorio = "C:\\Users\\Legion 5\\Documents\\Ingenieria en Sistemas 7mo. semestre\\COMPILADORES\\PF";
+        // Ruta del directorio donde se encuentra el archivo
+        String nombreArchivo = "nombreDelArchivo"; // Puedes cambiar este valor según tus necesidades
+        // Nombre del archivo que se va a utilizar
+        String codigo = jTextArea1.getText();
+
+        if (codigo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "ESTÁ VACÍO. NO SE PUEDE GENERAR CODIGO DE 3 DIRECCIONES", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            // Si el contenido del jTextArea1 está vacío, muestra un mensaje de advertencia indicando que no hay sintaxis para compilar.
+            return;
+        }
+        // Obtener el nombre del archivo sin la extensión
+        String nombreArchivoSinExtension = archivoActual.getName().replaceFirst("[.][^.]+$", "");
+        // Obtiene el nombre del archivo actual y elimina la extensión para obtener el nombre sin extensión
+        // Generar el archivo .bat
+        generarArchivoBat(rutaDirectorio, nombreArchivoSinExtension);
+        // Genera un archivo .bat en el directorio especificado utilizando el nombre del archivo sin extensión
+        // Ejecutar el archivo .bat
+        ejecutarArchivoBat(rutaDirectorio);
+        // Ejecuta el archivo .bat ubicado en el directorio especificado
+        // Leer el archivo .tdc
+        String contenidoTDC = leerArchivoTDC(rutaDirectorio, nombreArchivoSinExtension);
+        // Lee el contenido del archivo .tdc (archivo generado a partir del archivo .ml)
+        // Mostrar el resultado en una nueva ventana
+        mostrarResultadoEnVentana(contenidoTDC);
+        // Muestra el contenido del archivo .tdc en una nueva ventana
+    }                                                   
+
+    private void btn_asemblerActionPerformed(java.awt.event.ActionEvent evt) {                                             
+        String rutaDirectorio = "C:\\Users\\Legion 5\\Documents\\Ingenieria en Sistemas 7mo. semestre\\COMPILADORES\\PF";
+        // Ruta del directorio donde se encuentra el archivo
+        String nombreArchivo = "nombreDelArchivo"; // Puedes cambiar este valor según tus necesidades
+        // Nombre del archivo sin la extensión
+        String codigo = jTextArea1.getText();
+        if (codigo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "ESTÁ VACÍO. NO SE PUEDE GENERAR CODIGO ENSAMBLADOR", "Advertencia", JOptionPane.WARNING_MESSAGE);
+            // Si el contenido del jTextArea1 está vacío, muestra un mensaje de advertencia indicando que no hay sintaxis para compilar.
+            return;
+        }
+        // Obtener el nombre del archivo sin la extensión
+        String nombreArchivoSinExtension = archivoActual.getName().replaceFirst("[.][^.]+$", "");
+        // Obtiene el nombre del archivo actual (almacenado en la variable "archivoActual") y elimina la extensión
+        // Generar el archivo .bat
+        generarArchivoBat2(rutaDirectorio, nombreArchivoSinExtension);
+        // Genera un archivo .bat en el directorio especificado, utilizando el nombre del archivo sin extensión
+        // Ejecutar el archivo .bat
+        ejecutarArchivoBat2(rutaDirectorio);
+        // Ejecuta el archivo .bat ubicado en el directorio especificado
+        // Leer el archivo .tdc
+        String contenidoTDC = leerArchivoTDC(rutaDirectorio, nombreArchivoSinExtension);
+        // Lee el contenido del archivo .tdc generado
+        // Mostrar el resultado en una nueva ventana
+        mostrarResultadoEnVentana2(contenidoTDC);
+        // Muestra el contenido del archivo .tdc en una nueva ventana
+    }                                            
+
+    /**
+     * @param args the command line arguments
+     */
+    public static void main(String args[]) {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException ex) {
+            java.util.logging.Logger.getLogger(MClase.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (InstantiationException ex) {
+            java.util.logging.Logger.getLogger(MClase.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (IllegalAccessException ex) {
+            java.util.logging.Logger.getLogger(MClase.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
+            java.util.logging.Logger.getLogger(MClase.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable() {
+            public void run() {
+                new MClase().setVisible(true);
+            }
+        });
+    }
+
+    // Variables declaration - do not modify                     
+    private javax.swing.JButton btn_abrir;
+    private javax.swing.JButton btn_asembler;
+    private javax.swing.JButton btn_compilar;
+    private javax.swing.JButton btn_guardar;
+    private javax.swing.JButton btn_guardarcomo;
+    private javax.swing.JButton btn_tresdirecciones;
+    private javax.swing.JButton btnsalir;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea1;
+    // End of variables declaration                   
+}

@@ -1,0 +1,10 @@
+main:
+call imput;
+pop a;
+#T1 = 1 + 2
+#T2 = #T1 + b
+a = #T2;
+push a;
+call output;
+push b;
+call output;

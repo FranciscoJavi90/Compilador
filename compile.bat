@@ -1,0 +1,1 @@
+grama < gramatica.ml > gramatica.tdc
